@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.MediaController;
+import android.widget.Space;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -54,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
             videoResult, classificationVideoResult, videoConfidenceLevelResult,
             audioResult, classificationAudioResult, audioConfidenceLevelResult;
     VideoView videoContainer;
+    Space videoResultSpace, audioResultSpace;
 
     // initial file path
     String file_path = null;
@@ -82,13 +84,18 @@ public class MainActivity extends AppCompatActivity {
         classificationAudioResult = findViewById(R.id.classificationAudioResult);
         audioConfidenceLevelResult = findViewById(R.id.audioConfidenceLevelResult);
 
+        videoResultSpace = findViewById(R.id.videoResultSpace);
+        audioResultSpace = findViewById(R.id.audioResultSpace);
+
         errorMessageContainer = findViewById(R.id.errorMessageContainer);
         errorMessage = findViewById(R.id.errorMessage);
+        errorMessage.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.red));
 
         // upload button
         uploadBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 if(Build.VERSION.SDK_INT>=23){
                     if(checkPermission()){
                         filePicker();
@@ -122,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
     private void UploadFile() {
         UploadTask uploadTask = new UploadTask();
         uploadTask.execute(file_path);
-        Toast.makeText(MainActivity.this, "File Uploaded Successfully", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(MainActivity.this, "File Uploaded Successfully", Toast.LENGTH_SHORT).show();
         Log.d("File Uploaded", "File: " + file_path);
     }
 
@@ -134,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String s){
             super.onPostExecute(s);
             if(s.equalsIgnoreCase("true")){
-                Toast.makeText(MainActivity.this, "File Uploaded", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Successfully Uploaded", Toast.LENGTH_SHORT).show();
             }
             else{
                 Toast.makeText(MainActivity.this, "Failed Upload", Toast.LENGTH_SHORT).show();
@@ -169,29 +176,37 @@ public class MainActivity extends AppCompatActivity {
                         .build();
 
                 OkHttpClient client = new OkHttpClient().newBuilder()
-                        .connectTimeout(90, TimeUnit.SECONDS) // Set the connect timeout
-                        .writeTimeout(90, TimeUnit.SECONDS) // Set the write timeout
-                        .readTimeout(90, TimeUnit.SECONDS) // Set the read timeout
+                        .connectTimeout(0, TimeUnit.SECONDS) // Set the connect timeout
+                        .writeTimeout(0, TimeUnit.SECONDS) // Set the write timeout
+                        .readTimeout(0, TimeUnit.SECONDS) // Set the read timeout
                         .build();
 
                 client.newCall(request).enqueue(new Callback() {
                     @Override
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
+
                         e.printStackTrace();
 
-                        /*if (e instanceof SocketTimeoutException) {
-                            classificationResult.setText("Time Out Error");
-                        } else if (e instanceof UnknownHostException) {
-                            // Handle unknown host exception
-                            classificationResult.setText("Unstable Network");
-                        } else if (e instanceof IOException) {
-                            // Handle general IO exception
-                            classificationResult.setText("Input/Output Error");
-                        } else {
-                            // Handle other exceptions
-                            classificationResult.setText("Unstable Network");
-                        }*/
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                errorMessageContainer.setVisibility(View.VISIBLE);
+                                errorMessage.setTypeface(null, Typeface.BOLD_ITALIC);
 
+                                if (e instanceof SocketTimeoutException) {
+                                    errorMessage.setText("Time Out Error !");
+                                } else if (e instanceof UnknownHostException) {
+                                    // Handle unknown host exception
+                                    errorMessage.setText("Error: Unstable Network");
+                                } else if (e instanceof IOException) {
+                                    // Handle general IO exception
+                                    errorMessage.setText("Input or Output Error");
+                                } else {
+                                    // Handle other exceptions
+                                    errorMessage.setText("Error: Invalid Video (" + e.getMessage() + ")");
+                                }
+                            }
+                        });
                     }
 
                     @Override
@@ -236,6 +251,16 @@ public class MainActivity extends AppCompatActivity {
                                             classificationAudioResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.black));
                                         }
 
+                                        if(videoClassification.contains("No")) {
+                                            videoConfidenceLevelResult.setVisibility(View.GONE);
+                                            videoResultSpace.setVisibility(View.GONE);
+                                        }
+
+                                        if(audioClassification.contains("No")) {
+                                            videoConfidenceLevelResult.setVisibility(View.GONE);
+                                            videoResultSpace.setVisibility(View.GONE);
+                                        }
+
                                         classificationResultsContainer.setVisibility(View.VISIBLE);
 
                                         classificationVideoResult.setText(videoClassification.toUpperCase());
@@ -245,8 +270,18 @@ public class MainActivity extends AppCompatActivity {
 
                                     } catch (IOException e) {
                                         e.printStackTrace();
+
+                                        errorMessageContainer.setVisibility(View.VISIBLE);
+                                        errorMessage.setTypeface(null, Typeface.BOLD_ITALIC);
+                                        errorMessage.setText("Input or Output Error");
+
                                     } catch (JSONException e) {
                                         e.printStackTrace();
+
+                                        errorMessageContainer.setVisibility(View.VISIBLE);
+                                        errorMessage.setTypeface(null, Typeface.BOLD_ITALIC);
+                                        errorMessage.setText("Error");
+
                                     }
                                     Log.d("POST Response", "Response: " + responseBody);
                                 }
@@ -255,7 +290,9 @@ public class MainActivity extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    // Text Error
+                                    errorMessageContainer.setVisibility(View.VISIBLE);
+                                    errorMessage.setTypeface(null, Typeface.BOLD_ITALIC);
+                                    errorMessage.setText("Sorry! Detection Failed.");
                                 }
                             });
                         }
@@ -265,6 +302,15 @@ public class MainActivity extends AppCompatActivity {
             }
             catch (Exception e){
                 e.printStackTrace();
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        errorMessageContainer.setVisibility(View.VISIBLE);
+                        errorMessage.setTypeface(null, Typeface.BOLD_ITALIC);
+                        errorMessage.setText("Error: Invalid Video (" + e.getMessage() + ")");
+                    }
+                });
                 return false;
             }
         }
@@ -273,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
 
     // selecting file method
     private void filePicker() {
-        Toast.makeText(MainActivity.this, "File picker call", Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this, "Select a file", Toast.LENGTH_SHORT).show();
         Intent openGallery = new Intent(Intent.ACTION_PICK);
         openGallery.setType("video/*");
         startActivityForResult(openGallery, REQUEST_GALLERY);

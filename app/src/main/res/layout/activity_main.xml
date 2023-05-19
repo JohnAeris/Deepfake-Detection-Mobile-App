@@ -11,7 +11,7 @@
         android:id="@+id/classificationResultsContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="20dp"
         android:gravity="center"
         android:orientation="horizontal"
         android:visibility="gone"
@@ -28,7 +28,7 @@
 
             <TextView
                 android:id="@+id/videoResult"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:gravity="center"
@@ -52,8 +52,10 @@
                     android:textSize="16sp" />
 
                 <Space
+                    android:id="@+id/videoResultSpace"
                     android:layout_width="30dp"
-                    android:layout_height="match_parent" />
+                    android:layout_height="match_parent"
+                    android:visibility="visible" />
 
                 <TextView
                     android:id="@+id/videoConfidenceLevelResult"
@@ -63,7 +65,8 @@
                     android:gravity="center"
                     android:text="- - %"
                     android:textColor="@color/black"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:visibility="visible" />
             </LinearLayout>
 
         </LinearLayout>
@@ -81,7 +84,7 @@
 
             <TextView
                 android:id="@+id/audioResult"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:gravity="center"
@@ -105,8 +108,10 @@
                     android:textSize="16sp" />
 
                 <Space
+                    android:id="@+id/audioResultSpace"
                     android:layout_width="30dp"
-                    android:layout_height="match_parent" />
+                    android:layout_height="match_parent"
+                    android:visibility="visible" />
 
                 <TextView
                     android:id="@+id/audioConfidenceLevelResult"
@@ -116,7 +121,8 @@
                     android:gravity="center"
                     android:text="- - %"
                     android:textColor="@color/black"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:visibility="visible" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
@@ -128,7 +134,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
         android:gravity="center"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@+id/fileContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -140,7 +146,7 @@
             android:gravity="center"
             android:text="Error Message"
             android:textColor="@color/black"
-            android:textSize="16sp" />
+            android:textSize="12sp" />
 
 
     </LinearLayout>
@@ -150,13 +156,14 @@
         android:id="@+id/fileContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="100dp"
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout2"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent">
 
         <!--video file-->
         <FrameLayout
@@ -167,7 +174,7 @@
                 android:id="@+id/videoContainer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"/>
+                android:layout_gravity="center" />
         </FrameLayout>
 
 
@@ -176,11 +183,11 @@
             android:id="@+id/filenameContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:gravity="center"
             android:text="Upload a video file"
-            android:layout_marginTop="10dp"
-            android:textSize="15sp"
-            android:textColor="@color/black"/>
+            android:textColor="@color/black"
+            android:textSize="15sp" />
 
 
     </LinearLayout>
