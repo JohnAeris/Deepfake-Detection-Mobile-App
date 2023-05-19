@@ -23,8 +23,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 import org.jetbrains.annotations.Nullable;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
+import java.math.RoundingMode;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.text.DecimalFormat;
+import java.util.concurrent.TimeUnit;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -37,9 +46,11 @@ import okhttp3.Response;
 public class MainActivity extends AppCompatActivity {
 
     // variables declarations
-    View fileContainer;
+    View fileContainer, classificationResultsContainer, errorMessageContainer;
     Button uploadBtn, detectBtn;
-    TextView filename;
+    TextView filename, errorMessage,
+            videoResult, classificationVideoResult, videoConfidenceLevelResult,
+            audioResult, classificationAudioResult, audioConfidenceLevelResult;
     VideoView videoContainer;
 
     // initial file path
@@ -60,6 +71,17 @@ public class MainActivity extends AppCompatActivity {
         detectBtn = findViewById(R.id.detectButton);
         filename = findViewById(R.id.filenameContainer);
         videoContainer = findViewById(R.id.videoContainer);
+
+        classificationResultsContainer = findViewById(R.id.classificationResultsContainer);
+        videoResult = findViewById(R.id.videoResult);
+        classificationVideoResult = findViewById(R.id.classificationVideoResult);
+        videoConfidenceLevelResult = findViewById(R.id.videoConfidenceLevelResult);
+        audioResult = findViewById(R.id.audioResult);
+        classificationAudioResult = findViewById(R.id.classificationAudioResult);
+        audioConfidenceLevelResult = findViewById(R.id.audioConfidenceLevelResult);
+
+        errorMessageContainer = findViewById(R.id.errorMessageContainer);
+        errorMessage = findViewById(R.id.errorMessage);
 
         // upload button
         uploadBtn.setOnClickListener(new View.OnClickListener() {
@@ -144,16 +166,76 @@ public class MainActivity extends AppCompatActivity {
                         .post(requestBody)
                         .build();
 
-                OkHttpClient client = new OkHttpClient();
+                OkHttpClient client = new OkHttpClient().newBuilder()
+                        .connectTimeout(90, TimeUnit.SECONDS) // Set the connect timeout
+                        .writeTimeout(90, TimeUnit.SECONDS) // Set the write timeout
+                        .readTimeout(90, TimeUnit.SECONDS) // Set the read timeout
+                        .build();
+
                 client.newCall(request).enqueue(new Callback() {
                     @Override
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
                         e.printStackTrace();
+
+                        /*if (e instanceof SocketTimeoutException) {
+                            classificationResult.setText("Time Out Error");
+                        } else if (e instanceof UnknownHostException) {
+                            // Handle unknown host exception
+                            classificationResult.setText("Unstable Network");
+                        } else if (e instanceof IOException) {
+                            // Handle general IO exception
+                            classificationResult.setText("Input/Output Error");
+                        } else {
+                            // Handle other exceptions
+                            classificationResult.setText("Unstable Network");
+                        }*/
+
                     }
 
                     @Override
                     public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                        if (response.isSuccessful()) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    String responseBody = null;
+                                    try {
+                                        responseBody = response.body().string();
 
+                                        JSONObject jsonObject = new JSONObject(responseBody);
+
+                                        int decimalPlaces = 2;
+                                        DecimalFormat decimalFormat = new DecimalFormat("##.##");
+                                        decimalFormat.setRoundingMode(RoundingMode.HALF_UP);
+
+                                        String videoClassification = jsonObject.getString("video_classification");
+                                        String videoConfidenceLevel = decimalFormat.format(jsonObject.getDouble("video_confidence_level"));
+                                        String audioClassification = jsonObject.getString("audio_classification");
+                                        String audioConfidenceLevel = decimalFormat.format(jsonObject.getDouble("audio_confidence_level"));
+
+                                        classificationResultsContainer.setVisibility(View.VISIBLE);
+
+                                        classificationVideoResult.setText(videoClassification);
+                                        videoConfidenceLevelResult.setText(videoConfidenceLevel + "%");
+                                        classificationAudioResult.setText(audioClassification);
+                                        audioConfidenceLevelResult.setText(audioConfidenceLevel + "%");
+
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                    Log.d("POST Response", "Response: " + responseBody);
+                                }
+                            });
+                        } else {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // Text Error
+                                }
+                            });
+                        }
                     }
                 });
                 return true;
