@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -32,6 +33,7 @@ import java.math.RoundingMode;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.text.DecimalFormat;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
@@ -208,16 +210,37 @@ public class MainActivity extends AppCompatActivity {
                                         DecimalFormat decimalFormat = new DecimalFormat("##.##");
                                         decimalFormat.setRoundingMode(RoundingMode.HALF_UP);
 
+                                        videoResult.setTypeface(null, Typeface.BOLD);
+                                        audioResult.setTypeface(null, Typeface.BOLD);
+                                        classificationVideoResult.setTypeface(null, Typeface.BOLD);
+                                        classificationAudioResult.setTypeface(null, Typeface.BOLD);
+
                                         String videoClassification = jsonObject.getString("video_classification");
                                         String videoConfidenceLevel = decimalFormat.format(jsonObject.getDouble("video_confidence_level"));
                                         String audioClassification = jsonObject.getString("audio_classification");
                                         String audioConfidenceLevel = decimalFormat.format(jsonObject.getDouble("audio_confidence_level"));
 
+                                        if(videoClassification.contains("fake")) {
+                                            classificationVideoResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.red));
+                                        } else if (videoClassification.contains("real")) {
+                                            classificationVideoResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.green));
+                                        } else {
+                                            classificationVideoResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.black));
+                                        }
+
+                                        if(audioClassification.contains("fake")) {
+                                            classificationAudioResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.red));
+                                        } else if (videoClassification.contains("real")) {
+                                            classificationAudioResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.green));
+                                        } else {
+                                            classificationAudioResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.black));
+                                        }
+
                                         classificationResultsContainer.setVisibility(View.VISIBLE);
 
-                                        classificationVideoResult.setText(videoClassification);
+                                        classificationVideoResult.setText(videoClassification.toUpperCase());
                                         videoConfidenceLevelResult.setText(videoConfidenceLevel + "%");
-                                        classificationAudioResult.setText(audioClassification);
+                                        classificationAudioResult.setText(audioClassification.toUpperCase());
                                         audioConfidenceLevelResult.setText(audioConfidenceLevel + "%");
 
                                     } catch (IOException e) {
