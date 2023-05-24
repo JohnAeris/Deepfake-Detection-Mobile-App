@@ -240,28 +240,26 @@ public class MainActivity extends AppCompatActivity {
 
                                         if(videoClassification.contains("fake")) {
                                             classificationVideoResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.red));
-                                        } else if (videoClassification.contains("real")) {
-                                            classificationVideoResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.green));
                                         } else {
-                                            classificationVideoResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.black));
+                                            classificationVideoResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.green));
                                         }
 
                                         if(audioClassification.contains("fake")) {
                                             classificationAudioResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.red));
-                                        } else if (videoClassification.contains("real")) {
-                                            classificationAudioResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.green));
                                         } else {
-                                            classificationAudioResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.black));
+                                            classificationAudioResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.green));
                                         }
 
                                         if(videoClassification.contains("No")) {
+                                            classificationVideoResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.black));
                                             videoConfidenceLevelResult.setVisibility(View.GONE);
                                             videoResultSpace.setVisibility(View.GONE);
                                         }
 
                                         if(audioClassification.contains("No")) {
-                                            videoConfidenceLevelResult.setVisibility(View.GONE);
-                                            videoResultSpace.setVisibility(View.GONE);
+                                            classificationAudioResult.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.black));
+                                            audioConfidenceLevelResult.setVisibility(View.GONE);
+                                            audioResultSpace.setVisibility(View.GONE);
                                         }
 
                                         classificationResultsContainer.setVisibility(View.VISIBLE);
