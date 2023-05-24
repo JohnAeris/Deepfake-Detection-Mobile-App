@@ -187,6 +187,8 @@ public class MainActivity extends AppCompatActivity {
 
                         e.printStackTrace();
 
+                        classificationResultsContainer.setVisibility(View.GONE);
+
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -215,6 +217,7 @@ public class MainActivity extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
+                                    errorMessageContainer.setVisibility(View.GONE);
                                     String responseBody = null;
                                     try {
                                         responseBody = response.body().string();
