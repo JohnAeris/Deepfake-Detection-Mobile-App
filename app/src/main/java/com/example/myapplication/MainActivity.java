@@ -2,11 +2,13 @@ package com.example.myapplication;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -15,9 +17,13 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.MediaController;
 import android.widget.Space;
@@ -49,9 +55,10 @@ import okhttp3.Response;
 public class MainActivity extends AppCompatActivity {
 
     // variables declarations
-    View fileContainer, classificationResultsContainer, errorMessageContainer;
+    View fileContainer, classificationResultsContainer, errorMessageContainer,
+            loading, buttonsContainer;
     Button uploadBtn, detectBtn;
-    TextView filename, errorMessage,
+    TextView filename, errorMessage, loadingMessage,
             videoResult, classificationVideoResult, videoConfidenceLevelResult,
             audioResult, classificationAudioResult, audioConfidenceLevelResult;
     VideoView videoContainer;
@@ -69,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         fileContainer = findViewById(R.id.fileContainer);
         uploadBtn = findViewById(R.id.uploadButton);
@@ -90,6 +98,11 @@ public class MainActivity extends AppCompatActivity {
         errorMessageContainer = findViewById(R.id.errorMessageContainer);
         errorMessage = findViewById(R.id.errorMessage);
         errorMessage.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.red));
+
+        loading = findViewById(R.id.loading);
+        buttonsContainer = findViewById(R.id.buttonsContainer);
+        loadingMessage = findViewById(R.id.loadingMessage);
+
 
         // upload button
         uploadBtn.setOnClickListener(new View.OnClickListener() {
@@ -115,6 +128,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(file_path != null){
+                    classificationResultsContainer.setVisibility(View.GONE);
+                    buttonsContainer.setVisibility(View.GONE);
+                    loading.setVisibility(View.VISIBLE);
+                    loadingMessage.setText("please wait for results...");
                     UploadFile();
                 }
                 else{
@@ -162,7 +179,6 @@ public class MainActivity extends AppCompatActivity {
         protected void onPreExecute(){
             super.onPreExecute();
         }
-
         private boolean uploadFile(String path){
             File file = new File(path);
             try {
@@ -197,15 +213,23 @@ public class MainActivity extends AppCompatActivity {
 
                                 if (e instanceof SocketTimeoutException) {
                                     errorMessage.setText("Time Out Error !");
+                                    loading.setVisibility(View.GONE);
+                                    buttonsContainer.setVisibility(View.VISIBLE);
                                 } else if (e instanceof UnknownHostException) {
                                     // Handle unknown host exception
                                     errorMessage.setText("Error: Unstable Network");
+                                    loading.setVisibility(View.GONE);
+                                    buttonsContainer.setVisibility(View.VISIBLE);
                                 } else if (e instanceof IOException) {
                                     // Handle general IO exception
                                     errorMessage.setText("Input or Output Error");
+                                    loading.setVisibility(View.GONE);
+                                    buttonsContainer.setVisibility(View.VISIBLE);
                                 } else {
                                     // Handle other exceptions
                                     errorMessage.setText("Error: Invalid Video (" + e.getMessage() + ")");
+                                    loading.setVisibility(View.GONE);
+                                    buttonsContainer.setVisibility(View.VISIBLE);
                                 }
                             }
                         });
@@ -217,9 +241,12 @@ public class MainActivity extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    errorMessageContainer.setVisibility(View.GONE);
                                     String responseBody = null;
                                     try {
+                                        errorMessageContainer.setVisibility(View.GONE);
+                                        loading.setVisibility(View.GONE);
+                                        buttonsContainer.setVisibility(View.VISIBLE);
+
                                         responseBody = response.body().string();
 
                                         JSONObject jsonObject = new JSONObject(responseBody);
@@ -294,6 +321,8 @@ public class MainActivity extends AppCompatActivity {
                                     errorMessageContainer.setVisibility(View.VISIBLE);
                                     errorMessage.setTypeface(null, Typeface.BOLD_ITALIC);
                                     errorMessage.setText("Sorry! Detection Failed.");
+                                    loading.setVisibility(View.GONE);
+                                    buttonsContainer.setVisibility(View.VISIBLE);
                                 }
                             });
                         }
@@ -310,6 +339,8 @@ public class MainActivity extends AppCompatActivity {
                         errorMessageContainer.setVisibility(View.VISIBLE);
                         errorMessage.setTypeface(null, Typeface.BOLD_ITALIC);
                         errorMessage.setText("Error: Invalid Video (" + e.getMessage() + ")");
+                        loading.setVisibility(View.GONE);
+                        buttonsContainer.setVisibility(View.VISIBLE);
                     }
                 });
                 return false;
@@ -393,5 +424,4 @@ public class MainActivity extends AppCompatActivity {
                 }
         }
     }
-
 }
