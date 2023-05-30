@@ -19,12 +19,15 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.text.Editable;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.Space;
 import android.widget.TextView;
@@ -56,13 +59,16 @@ public class MainActivity extends AppCompatActivity {
 
     // variables declarations
     View fileContainer, classificationResultsContainer, errorMessageContainer,
-            loading, buttonsContainer;
-    Button uploadBtn, detectBtn;
+            loading, buttonsContainer, localHostContainer;
+    Button uploadBtn, detectBtn, saveBtn;
     TextView filename, errorMessage, loadingMessage,
             videoResult, classificationVideoResult, videoConfidenceLevelResult,
             audioResult, classificationAudioResult, audioConfidenceLevelResult;
     VideoView videoContainer;
     Space videoResultSpace, audioResultSpace;
+    EditText localhostInput;
+    ImageView backBtn;
+    String localHost;
 
     // initial file path
     String file_path = null;
@@ -103,6 +109,11 @@ public class MainActivity extends AppCompatActivity {
         buttonsContainer = findViewById(R.id.buttonsContainer);
         loadingMessage = findViewById(R.id.loadingMessage);
 
+        saveBtn = findViewById(R.id.saveBtn);
+        localhostInput = findViewById(R.id.localhostInput);
+        localHostContainer = findViewById(R.id.localHostContainer);
+        backBtn = findViewById(R.id.backBtn);
+
 
         // upload button
         uploadBtn.setOnClickListener(new View.OnClickListener() {
@@ -128,6 +139,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(file_path != null){
+                    backBtn.setVisibility(View.GONE);
                     classificationResultsContainer.setVisibility(View.GONE);
                     buttonsContainer.setVisibility(View.GONE);
                     loading.setVisibility(View.VISIBLE);
@@ -137,6 +149,36 @@ public class MainActivity extends AppCompatActivity {
                 else{
                     Toast.makeText(MainActivity.this, "Please select a file first", Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+
+        // save button
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    Thread.sleep(1200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                localHostContainer.setVisibility(View.GONE);
+                backBtn.setVisibility(View.VISIBLE);
+                fileContainer.setVisibility(View.VISIBLE);
+                buttonsContainer.setVisibility(View.VISIBLE);
+            }
+        });
+
+        //back button
+        backBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                localHostContainer.setVisibility(View.VISIBLE);
+                backBtn.setVisibility(View.GONE);
+                fileContainer.setVisibility(View.GONE);
+                buttonsContainer.setVisibility(View.GONE);
+                fileContainer.setVisibility(View.GONE);
+                errorMessageContainer.setVisibility(View.GONE);
+                classificationResultsContainer.setVisibility(View.GONE);
             }
         });
 
@@ -180,14 +222,18 @@ public class MainActivity extends AppCompatActivity {
             super.onPreExecute();
         }
         private boolean uploadFile(String path){
+
             File file = new File(path);
             try {
+                localHost = localhostInput.getText().toString();
+                Log.d("LocalHostInput", "uploadFile: "+localHost);
+
                 RequestBody requestBody =  new MultipartBody.Builder().setType(MultipartBody.FORM)
                         .addFormDataPart("video", file.getName(), RequestBody.create(MediaType.parse("video/*"), file))
                         .build();
 
                 Request request = new Request.Builder()
-                        .url("http://192.168.18.6:8000/addVideo/")
+                        .url("http://"+localHost+":8000/addVideo/")
                         .post(requestBody)
                         .build();
 
@@ -243,6 +289,7 @@ public class MainActivity extends AppCompatActivity {
                                 public void run() {
                                     String responseBody = null;
                                     try {
+                                        backBtn.setVisibility(View.VISIBLE);
                                         errorMessageContainer.setVisibility(View.GONE);
                                         loading.setVisibility(View.GONE);
                                         buttonsContainer.setVisibility(View.VISIBLE);
@@ -318,6 +365,7 @@ public class MainActivity extends AppCompatActivity {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
+                                    backBtn.setVisibility(View.VISIBLE);
                                     errorMessageContainer.setVisibility(View.VISIBLE);
                                     errorMessage.setTypeface(null, Typeface.BOLD_ITALIC);
                                     errorMessage.setText("Sorry! Detection Failed.");
@@ -336,6 +384,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        backBtn.setVisibility(View.VISIBLE);
                         errorMessageContainer.setVisibility(View.VISIBLE);
                         errorMessage.setTypeface(null, Typeface.BOLD_ITALIC);
                         errorMessage.setText("Error: Invalid Video (" + e.getMessage() + ")");
